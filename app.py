@@ -35,14 +35,6 @@ def parse_response_error(html_text: str) -> str:
 
 @APP.route("/")
 def home():
-    """Home page.
-    :return:
-    """
-    return render_template("home.html")
-
-
-@APP.route("/auth0-redirect-rule")
-def auth0_redirect_rule():
     """Example endpoint for handling YooniK's redirect rule from Auth0
     :return:
     """
