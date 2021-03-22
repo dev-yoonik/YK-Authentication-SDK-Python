@@ -7,7 +7,7 @@ from flask import Flask, request, render_template
 # ------------ SET THESE CONFIGURATION VALUES ------------ #
 SESSION_TOKEN_SECRET = 'A random long string that is used to sign the session token from Auth0'
 YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
-YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact tech@yoonik.me).'
+YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
 # -------------------------------------------------------- #
 
 
