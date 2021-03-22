@@ -12,7 +12,6 @@ For more information please contact our [support team](mailto:support@yoonik.me)
 $ git clone https://github.com/dev-yoonik/YK-Authentication-SDK-Python.git
 $ cd YK-Authentication-SDK-Python
 $ pip install -r requirements.txt
-$ python app.py
 ```
 
 Set the configuration values in the file app.py:
