@@ -15,4 +15,20 @@ $ pip install -r requirements.txt
 $ python app.py
 ```
 
+Set the configuration values in the file app.py:
+
+```
+# app.py
+
+SESSION_TOKEN_SECRET = 'A random long string that is used to sign the session token from Auth0'
+YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
+YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
+```
+
+Run the app:
+
+```bash
+$ python app.py
+```
+
 The app should be listening on http://localhost:3031!
