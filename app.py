@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, request, render_template
 
 # ------------ SET THESE CONFIGURATION VALUES ------------ #
-SESSION_TOKEN_SECRET = 'A random long string that is used to sign the session token from Auth0'
+YOONIK_SESSION_SECRET = 'A random long string that is used to sign the session token from Auth0'
 YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
 YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
 # -------------------------------------------------------- #
@@ -52,7 +52,7 @@ def verify_user():
 
     state = request.json['state']
     session_token = request.json['session_token']
-    session_token_decoded = jwt.decode(session_token, SESSION_TOKEN_SECRET, algorithms=[JWT_ALGORITHM])
+    session_token_decoded = jwt.decode(session_token, YOONIK_SESSION_SECRET, algorithms=[JWT_ALGORITHM])
     user_id = session_token_decoded['sub']
     if request.json['photo'] and allowed_base64_image(request.json['photo']):
         photo_str = request.json['photo'].split('base64,')[1]
@@ -76,8 +76,9 @@ def verify_user():
             message = f'Face authentication failed: {parse_response_error(response.text)}'
 
     session_token_decoded["status"] = status
+    session_token_decoded["state"] = state
     new_session_token_encoded = jwt.encode(session_token_decoded,
-                                           SESSION_TOKEN_SECRET, algorithm=JWT_ALGORITHM)
+                                           YOONIK_SESSION_SECRET, algorithm=JWT_ALGORITHM)
     continue_url = f"{session_token_decoded['iss']}continue?state={state}&" \
                    f"yoonik_authentication=true&" \
                    f"session_token={new_session_token_encoded}"
@@ -86,4 +87,4 @@ def verify_user():
 
 
 if __name__ == "__main__":
-    APP.run(host="localhost", port=3031)
+    APP.run(host="127.0.0.1", port=3031)
