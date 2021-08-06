@@ -1,3 +1,8 @@
 <h2 class="{{ message_class }}">{{ message }}</h2>
-<p><a class="text-info" href="{{ continue_url }}">Back to Auth0 👉</a></p>
+<p>
+    {% if message_class == 'text-danger' %}
+        <a class="text-info" href="javascript:location.reload(true)">Try again</a> or
+    {% endif %}
+    <a class="text-info" href="{{ continue_url }}">Back to Auth0 👉</a>
+</p>
 
