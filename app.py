@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from flask import Flask, request, render_template
 
 # ------------ SET THESE CONFIGURATION VALUES ------------ #
-SESSION_TOKEN_SECRET = 'A random long string that is used to sign the session token from Auth0'
+YOONIK_SESSION_SECRET = 'A random long string that is used to sign the session token from Auth0'
 YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
 YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
 # -------------------------------------------------------- #
@@ -30,7 +30,33 @@ def parse_response_error(html_text: str) -> str:
     """
     html = BeautifulSoup(markup=html_text, features="html.parser")
     inner_html = BeautifulSoup(markup=html.p.text, features="html.parser")
-    return inner_html.text if inner_html.p is None else inner_html.p.text
+    message = inner_html.text if inner_html.p is None else inner_html.p.text
+    if "face_not_found" in message:
+        message = "Could not find a face in the image."
+    elif "multiple_faces" in message:
+        message = "The image has more than one person."
+    elif "quality_failed" in message:
+        message = "The provided image does not have enough quality."
+    return message
+
+
+def parse_response_status(status: str) -> str:
+    """Create a message from the response status data
+    :param status:
+        Status of the operation.
+    :return:
+        Resulting message to be sent to the UI.
+    """
+    message = status
+    if status == 'SUCCESS':
+        message = "Face authentication successful"
+    elif status == 'NEW_USER':
+        message = "Face signup successful"
+    elif status == 'USER_NOT_FOUND':
+        message = "User not registered"
+    elif status == 'FAILED':
+        message = "Face authentication failed"
+    return message
 
 
 @APP.route("/")
@@ -52,7 +78,7 @@ def verify_user():
 
     state = request.json['state']
     session_token = request.json['session_token']
-    session_token_decoded = jwt.decode(session_token, SESSION_TOKEN_SECRET, algorithms=[JWT_ALGORITHM])
+    session_token_decoded = jwt.decode(session_token, YOONIK_SESSION_SECRET, algorithms=[JWT_ALGORITHM])
     user_id = session_token_decoded['sub']
     if request.json['photo'] and allowed_base64_image(request.json['photo']):
         photo_str = request.json['photo'].split('base64,')[1]
@@ -71,13 +97,14 @@ def verify_user():
             result = json.loads(response.text)
             status = result['status']
             message_class = 'text-success' if status == 'SUCCESS' or status == 'NEW_USER' else 'text-danger'
-            message = f'Face authentication result: {status}'
+            message = parse_response_status(status)
         else:
-            message = f'Face authentication failed: {parse_response_error(response.text)}'
+            message = f'Ups! {parse_response_error(response.text)}'
 
     session_token_decoded["status"] = status
+    session_token_decoded["state"] = state
     new_session_token_encoded = jwt.encode(session_token_decoded,
-                                           SESSION_TOKEN_SECRET, algorithm=JWT_ALGORITHM)
+                                           YOONIK_SESSION_SECRET, algorithm=JWT_ALGORITHM)
     continue_url = f"{session_token_decoded['iss']}continue?state={state}&" \
                    f"yoonik_authentication=true&" \
                    f"session_token={new_session_token_encoded}"
@@ -86,4 +113,4 @@ def verify_user():
 
 
 if __name__ == "__main__":
-    APP.run(host="localhost", port=3031)
+    APP.run(host="127.0.0.1", port=3031)
