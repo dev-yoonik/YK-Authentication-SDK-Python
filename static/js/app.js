@@ -1,6 +1,9 @@
 var YooniKFaceAuthenticationSDK = (function(){
 
     var netDet = undefined;
+    var validFrames = 0;
+    var sendingResult = false;
+    var isRunning = false;
 
     function detectFaces(img) {
         var blob = cv.blobFromImage(img, 1, {
@@ -51,14 +54,19 @@ var YooniKFaceAuthenticationSDK = (function(){
     }
 
     function sendResult(imageData) {
-        document.getElementById('content').innerHTML = '<h2>Please wait...</h2>';
+        console.log("Sending result");
+        sendingResult = true;
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
         const request = new XMLHttpRequest();
         request.open( "POST", "/verify_user" );
         request.setRequestHeader("Content-Type", "application/json");
         request.addEventListener( "load", function(event) {
-            document.getElementById('content').innerHTML = this.responseText
+            if (this.responseText.search("text-danger") == -1 || validFrames > 10) {
+                isRunning = false;
+                document.getElementById('content').innerHTML = this.responseText
+            }
+            sendingResult = false;
         });
         data = {
             session_token: urlParams.get('session_token'),
@@ -103,10 +111,8 @@ var YooniKFaceAuthenticationSDK = (function(){
         //! [Open a camera stream]
 
         //! [Define frames processing]
-        var isRunning = false;
         var imageData = undefined;
         const FPS = 30; // Target number of frames processed per second.
-        var validFrames = 0;
         function captureFrame() {
             console.log("Capturing frame")
             var begin = Date.now();
@@ -117,14 +123,14 @@ var YooniKFaceAuthenticationSDK = (function(){
             var faces = detectFaces(frameBGR);
             console.log(`Detected ${faces.length} faces.`)
 
-            // Check if we got a single face
-            if (faces.length == 1) {
+            // Check if we should send a new face to YooniK Authentication API
+            if (!sendingResult && isRunning && faces.length == 1) {
                 validFrames++;
                 if (validFrames > 2) {
                     cv.imshow(output, frame);
                     console.log("Converting to base64 URL");
                     imageData = output.toDataURL("image/png");
-                    isRunning = false;
+                    sendResult(imageData);
                 }
             }
 
@@ -146,9 +152,6 @@ var YooniKFaceAuthenticationSDK = (function(){
             if (isRunning) {
                 var delay = 1000 / FPS - (Date.now() - begin);
                 setTimeout(captureFrame, delay);
-            } else {
-                console.log("Sending data");
-                sendResult(imageData);
             }
         }
         ;
