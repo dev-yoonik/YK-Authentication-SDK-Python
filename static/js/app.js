@@ -1,11 +1,14 @@
 var YooniKFaceAuthenticationSDK = (function(){
 
+    const MAX_TRIES = 10; // Maximum number of authentication requests per session.
+
     var netDet = undefined;
     var validFrames = 0;
     var sendingResult = false;
     var isRunning = false;
 
     function detectFaces(img) {
+        console.log("Detecting faces")
         var blob = cv.blobFromImage(img, 1, {
             width: 192,
             height: 144
@@ -36,10 +39,12 @@ var YooniKFaceAuthenticationSDK = (function(){
         }
         blob.delete();
         out.delete();
+        console.log(`Detected ${faces.length} faces.`)
         return faces;
     }
 
     function loadModel(callback) {
+        console.log("Loading model");
         var utils = new Utils('');
         var proto = 'https://raw.githubusercontent.com/opencv/opencv/master/samples/dnn/face_detector/deploy_lowres.prototxt';
         var weights = 'https://raw.githubusercontent.com/opencv/opencv_3rdparty/dnn_samples_face_detector_20180205_fp16/res10_300x300_ssd_iter_140000_fp16.caffemodel';
@@ -62,9 +67,10 @@ var YooniKFaceAuthenticationSDK = (function(){
         request.open( "POST", "/verify_user" );
         request.setRequestHeader("Content-Type", "application/json");
         request.addEventListener( "load", function(event) {
-            if (this.responseText.search("text-danger") == -1 || validFrames > 10) {
+            let jsonResponse = JSON.parse(this.responseText);
+            if (!imageData || jsonResponse.status != 'FAILED' || validFrames > MAX_TRIES) {
                 isRunning = false;
-                document.getElementById('content').innerHTML = this.responseText
+                document.getElementById('content').innerHTML = jsonResponse.html;
             }
             sendingResult = false;
         });
@@ -119,14 +125,12 @@ var YooniKFaceAuthenticationSDK = (function(){
             cap.read(frame); // Read a frame from camera
             cv.cvtColor(frame, frameBGR, cv.COLOR_RGBA2BGR);
 
-            console.log("Detecting faces")
             var faces = detectFaces(frameBGR);
-            console.log(`Detected ${faces.length} faces.`)
 
             // Check if we should send a new face to YooniK Authentication API
             if (!sendingResult && isRunning && faces.length == 1) {
                 validFrames++;
-                if (validFrames > 2) {
+                if (validFrames > 1) { // Discard the first valid frame.
                     cv.imshow(output, frame);
                     console.log("Converting to base64 URL");
                     imageData = output.toDataURL("image/png");
@@ -162,7 +166,6 @@ var YooniKFaceAuthenticationSDK = (function(){
             captureFrame();
         }
         if (netDet == undefined) {
-            console.log("Loading model");
             loadModel(run); // Load model and run a pipeline;
         } else {
             run();

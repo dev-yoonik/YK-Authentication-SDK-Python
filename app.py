@@ -2,7 +2,7 @@ import json
 import requests
 import jwt
 from bs4 import BeautifulSoup
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, jsonify
 
 # ------------ SET THESE CONFIGURATION VALUES ------------ #
 YOONIK_SESSION_SECRET = 'A random long string that is used to sign the session token from Auth0'
@@ -61,7 +61,7 @@ def parse_response_status(status: str) -> str:
 
 @APP.route("/")
 def home():
-    """Example endpoint for handling YooniK's redirect rule from Auth0
+    """Example endpoint for handling YooniK's Action integration from Auth0
     :return:
     """
     return render_template("take_photo.html")
@@ -109,7 +109,9 @@ def verify_user():
                    f"yoonik_authentication=true&" \
                    f"session_token={new_session_token_encoded}"
 
-    return render_template("result.html", message_class=message_class, message=message, continue_url=continue_url)
+    return jsonify(
+        status=status,
+        html=render_template("result.html", message_class=message_class, message=message, continue_url=continue_url))
 
 
 if __name__ == "__main__":
