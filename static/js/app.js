@@ -146,8 +146,6 @@ var YooniKFaceAuthenticationSDK = (function(){
                     x: rect.x + rect.width,
                     y: rect.y + rect.height
                 }, [43, 179, 186, 255], 3);
-
-                // var face = frameBGR.roi(rect);
             });
 
             cv.imshow(output, frame);
