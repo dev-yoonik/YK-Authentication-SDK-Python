@@ -2,3 +2,4 @@ requests
 flask
 PyJWT
 beautifulsoup4
+waitress

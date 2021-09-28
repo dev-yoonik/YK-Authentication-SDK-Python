@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: yoonik-auth-sdk
+  labels:
+    app: yoonik-auth-sdk
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    # Note that the backend talks over TCP.
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: tcp
+    # The ARN of our certificate.
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: [YOUR SSL CERTIFICATE ARN]
+spec:
+  externalTrafficPolicy: Local
+  ports:
+  - port: 443
+    targetPort: auth-sdk-server
+    protocol: TCP
+  selector:
+    app: yoonik-auth-sdk
+  type: LoadBalancer
+

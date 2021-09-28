@@ -1,6 +1,7 @@
 import json
 import requests
 import jwt
+from waitress import serve
 from bs4 import BeautifulSoup
 from flask import Flask, request, render_template, jsonify
 
@@ -115,4 +116,5 @@ def verify_user():
 
 
 if __name__ == "__main__":
-    APP.run(host="127.0.0.1", port=3031)
+    #APP.run(host="127.0.0.1", port=3031)
+    serve(APP, host="0.0.0.0", port=3031)

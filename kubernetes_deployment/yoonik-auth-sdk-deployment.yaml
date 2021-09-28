@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: yoonik-auth-sdk
+  labels:
+    app: yoonik-auth-sdk
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: yoonik-auth-sdk
+  template:
+    metadata:
+      labels:
+        app: yoonik-auth-sdk
+    spec:
+      containers:
+      - name: yoonik-auth-sdk
+        image: [YOUR DOCKER IMAGE URL]
+        resources:
+          requests:
+            cpu: "25m"
+            memory: "100Mi"
+        ports:
+        - name: auth-sdk-server
+          containerPort: 3031
