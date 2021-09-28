@@ -2,7 +2,7 @@
 
 This is a sample Flask Web App for capturing a selfie using the webcam and perform face authentication using [YooniK](https://yoonik.me) APIs.
 
-It handles the YooniK's redirect rule in [Auth0](https://auth0.com).
+It handles the YooniK's redirect Action in [Auth0](https://marketplace.auth0.com/integrations/yoonik-face-authentication).
 
 For more information please contact our [support team](mailto:support@yoonik.me).
 
@@ -31,3 +31,7 @@ $ python app.py
 ```
 
 The app should be listening on http://localhost:3031!
+
+## Container Deployment
+
+You can use the provided `Dockerfile` to build a docker image with this sample app.
