@@ -32,6 +32,16 @@ $ python app.py
 
 The app should be listening on http://localhost:3031!
 
+## Additional Samples
+
+You can find additional code samples [here](samples):
+
+-   [delete_user.py](samples/delete_user.py): Use YooniK Authentication API to delete all data related to a user.
+
 ## Container Deployment
 
-You can use the provided `Dockerfile` to build a docker image with this sample app.
+You can use the provided [Dockerfile](Dockerfile) to build a docker image with this sample app.
+
+## YooniK Authentication API Details
+
+For a complete specification of our Authentication API please check this [swagger file](authentication_api_swagger.json).
