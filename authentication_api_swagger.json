@@ -1,0 +1,150 @@
+{
+  "swagger": "2.0",
+  "basePath": "/v2.1/yoonik",
+  "paths": {
+    "/user_verification": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/VerifyUserResponse"
+            }
+          },
+          "400": {
+            "description": "BadRequest - Some field is missing or is invalid"
+          },
+          "401": {
+            "description": "Unauthorized - The request has not been applied because it lacks valid authentication credentials for the target resource."
+          },
+          "500": {
+            "description": "InternalServerError - An internal error occurred"
+          }
+        },
+        "summary": "Verify user",
+        "operationId": "post_user_verification_controller",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/VerifyUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserVerification"
+        ]
+      },
+      "delete": {
+        "responses": {
+          "204": {
+            "description": "User deleted"
+          },
+          "400": {
+            "description": "BadRequest - Some field is missing or is invalid"
+          },
+          "401": {
+            "description": "Unauthorized - The request has not been applied because it lacks valid authentication credentials for the target resource."
+          },
+          "500": {
+            "description": "InternalServerError - An internal error occurred"
+          }
+        },
+        "summary": "Delete verified user",
+        "operationId": "delete_user_verification_controller",
+        "parameters": [
+          {
+            "name": "payload",
+            "required": true,
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/DeleteUserRequest"
+            }
+          }
+        ],
+        "tags": [
+          "UserVerification"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "YooniK Authentication API",
+    "version": "2.1",
+    "description": "User enrollment and authentication."
+  },
+  "produces": [
+    "application/json"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "UserVerification",
+      "description": "User verification operations."
+    }
+  ],
+  "definitions": {
+    "VerifyUserRequest": {
+      "required": [
+        "create_if_new",
+        "user_id",
+        "user_photo"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "User ID"
+        },
+        "user_photo": {
+          "type": "string",
+          "description": "User photo as base64 string"
+        },
+        "create_if_new": {
+          "type": "boolean",
+          "description": "If true, an account is created when user_id is new"
+        }
+      },
+      "type": "object"
+    },
+    "DeleteUserRequest": {
+      "required": [
+        "user_id"
+      ],
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "description": "User ID"
+        }
+      },
+      "type": "object"
+    },
+    "VerifyUserResponse": {
+      "properties": {
+        "status": {
+          "type": "string",
+          "description": "Verification status",
+          "example": "SUCCESS",
+          "enum": [
+            "SUCCESS",
+            "FAILED",
+            "NEW_USER",
+            "USER_NOT_FOUND"
+          ]
+        }
+      },
+      "type": "object"
+    }
+  },
+  "responses": {
+    "ParseError": {
+      "description": "When a mask can't be parsed"
+    },
+    "MaskError": {
+      "description": "When any error occurs on mask"
+    }
+  }
+}
