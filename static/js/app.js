@@ -77,7 +77,11 @@ var YooniKFaceAuthenticationSDK = (function(){
             if (!imageData || jsonResponse.status != 'FAILED' || validFrames > MAX_TRIES) {
                 isRunning = false;
                 document.getElementById('content').innerHTML = jsonResponse.html;
-                navigator.vibrate([500,250,1000]);
+                try {
+                  navigator.vibrate([400,50,400]);
+                } catch (error) {
+                  console.log("Vibration is not compatible with this device.");
+                }
             }
             sendingResult = false;
         });
