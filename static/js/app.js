@@ -196,7 +196,11 @@ var YooniKFaceAuthenticationSDK = (function(){
     }
 
     window.addEventListener('load', (event) => {
-        cv['onRuntimeInitialized'] = () => { main(); };
+        cv['onRuntimeInitialized'] = () => {
+            let statusElement = document.getElementById('status');
+            statusElement.innerHTML = '<button type="button" class="btn btn-info" id="take-selfie-button">Take selfie</button>';
+            document.getElementById('take-selfie-button').onclick = main;
+        };
     });
 
 })();
