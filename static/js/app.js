@@ -77,7 +77,11 @@ var YooniKFaceAuthenticationSDK = (function(){
             if (!imageData || jsonResponse.status != 'FAILED' || validFrames > MAX_TRIES) {
                 isRunning = false;
                 document.getElementById('content').innerHTML = jsonResponse.html;
-                navigator.vibrate([500,250,1000]);
+                try {
+                  navigator.vibrate([400,50,400]);
+                } catch (error) {
+                  console.log("Vibration is not compatible with this device.");
+                }
             }
             sendingResult = false;
         });
@@ -192,7 +196,11 @@ var YooniKFaceAuthenticationSDK = (function(){
     }
 
     window.addEventListener('load', (event) => {
-        cv['onRuntimeInitialized'] = () => { main(); };
+        cv['onRuntimeInitialized'] = () => {
+            let statusElement = document.getElementById('status');
+            statusElement.innerHTML = '<button type="button" class="btn btn-info" id="take-selfie-button">Take selfie</button>';
+            document.getElementById('take-selfie-button').onclick = main;
+        };
     });
 
 })();
