@@ -31,8 +31,11 @@ def parse_response_error(html_text: str) -> str:
         Parsed error message.
     """
     html = BeautifulSoup(markup=html_text, features="html.parser")
-    inner_html = BeautifulSoup(markup=html.p.text, features="html.parser")
-    message = inner_html.text if inner_html.p is None else inner_html.p.text
+    message = html.text
+    if html.p:
+        inner_html = BeautifulSoup(markup=html.p.text, features="html.parser")
+        message = inner_html.text if inner_html.p is None else inner_html.p.text
+
     if "face_not_found" in message:
         message = "Could not find a face in the image."
     elif "multiple_faces" in message:
