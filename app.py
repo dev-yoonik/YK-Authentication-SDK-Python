@@ -30,8 +30,8 @@ def parse_response_error(html_text: str) -> str:
     :return:
         Parsed error message.
     """
+    message = ''
     html = BeautifulSoup(markup=html_text, features="html.parser")
-    message = html.text
     if html.p:
         inner_html = BeautifulSoup(markup=html.p.text, features="html.parser")
         message = inner_html.text if inner_html.p is None else inner_html.p.text
@@ -42,6 +42,9 @@ def parse_response_error(html_text: str) -> str:
         message = "The image has more than one person."
     elif "quality_failed" in message:
         message = "The provided image does not have enough quality."
+    else:
+        message = "An error occurred. Please contact your systems administrator."
+        print(f"ERROR: {html.text}")
     return message
 
 
