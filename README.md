@@ -4,8 +4,6 @@ This is a sample Flask Web App for capturing a selfie using the webcam and perfo
 
 It handles the YooniK's redirect Action in [Auth0](https://marketplace.auth0.com/integrations/yoonik-face-authentication).
 
-For more information please contact our [support team](mailto:support@yoonik.me).
-
 ## Getting Started
 
 ```bash
@@ -45,3 +43,8 @@ You can use the provided [Dockerfile](Dockerfile) to build a docker image with t
 ## YooniK Authentication API Details
 
 For a complete specification of our Authentication API please check this [swagger file](authentication_api_swagger.json).
+
+## Contact & Support
+
+For more information, support and trial licenses please [contact us](mailto:support@yoonik.me) or join us at our [discord community](https://discord.gg/SqHVQUFNtN).
+
