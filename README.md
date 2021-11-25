@@ -1,6 +1,6 @@
 # YK-Authentication-SDK-Python
 
-This is a sample Flask Web App for capturing a selfie using the webcam and perform face authentication using [YooniK](https://yoonik.me) APIs.
+This is a sample Flask Web App for capturing a selfie using the webcam and perform face authentication using [YooniK](https://www.yoonik.me) APIs.
 
 It handles the YooniK's redirect Action in [Auth0](https://marketplace.auth0.com/integrations/yoonik-face-authentication).
 
