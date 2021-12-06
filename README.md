@@ -12,14 +12,20 @@ $ cd YK-Authentication-SDK-Python
 $ pip install -r requirements.txt
 ```
 
-Set the configuration values in the file app.py:
+Copy the [`client_secrets.json.dist`](client_secrets.json.dist) to `client_secrets.json`:
 
+```bash
+$ cp client_secrets.json.dist client_secrets.json
 ```
-# app.py
 
-YOONIK_SESSION_SECRET = 'A random long string that is used to sign the session token from Auth0'
-YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
-YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
+You now need to set the configuration values in the `client_secrets.json` file.
+
+```json
+{
+  "YOONIK_SESSION_SECRET": "{{A random long string that is used to sign the session token from Auth0}}",
+  "YOONIK_AUTHENTICATION_API_URL": "{{URL for YooniK Authentication APIs}}",
+  "YOONIK_AUTHENTICATION_API_KEY": "{{Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).}}"
+}
 ```
 
 Run the app:
