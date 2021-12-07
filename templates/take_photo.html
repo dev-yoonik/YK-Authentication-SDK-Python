@@ -29,6 +29,10 @@
           </div>
         </div>
         <canvas id="output" width=640 height=480 style="max-width: 100%"></canvas>
+        <form class="form" id="face-authentication-form" action="" method="POST">
+          {{ form.csrf_token }}
+          <button id="submit-selfie-button" type="submit" class="btn btn-primary btn-wd" hidden>Submit</button>
+        </form>
       </div>
 
       <p class="mt-5 mb-3 text-muted">

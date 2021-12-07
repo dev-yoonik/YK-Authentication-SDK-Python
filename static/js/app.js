@@ -6,6 +6,8 @@ var YooniKFaceAuthenticationSDK = (function(){
     let validFrames = 0;
     let sendingResult = false;
     let isRunning = false;
+    let output = null;
+    let frame = null;
 
     function detectFaces(img) {
         console.log("Detecting faces")
@@ -58,25 +60,28 @@ var YooniKFaceAuthenticationSDK = (function(){
         });
     }
 
-    function sendResult(imageData) {
-        console.log("Sending result");
+    async function authenticateWithFace(event) {
+        event.preventDefault();
+        console.log("Submitting selfie");
         sendingResult = true;
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        const request = new XMLHttpRequest();
-        request.open( "POST", "/verify_user" );
-        request.setRequestHeader("Content-Type", "application/json");
-        request.addEventListener( "load", function(event) {
-            let jsonResponse = {
-                "status": this.statusText,
-                "html": this.responseText
-            };
-            if (this.status < 400) {
-                jsonResponse = JSON.parse(this.responseText);
+        const imageData = output.toDataURL("image/png");
+        let formData = new FormData(event.target) // event.target is the form
+        formData.append('user_selfie', imageData);
+        fetch(event.target.action, {
+            method: 'POST',
+            body: formData
+        }).then((resp) => {
+            if (resp.ok) {
+                return resp.json();
+            } else {
+                return resp.text();
             }
-            if (!imageData || jsonResponse.status != 'FAILED' || validFrames > MAX_TRIES) {
+        }).then((data) => {
+            const responseStatus = data.status !== undefined ? data.status : 'ERROR';
+            const responseText = data.html !== undefined ? data.html : data;
+            if ( responseStatus != 'FAILED' || validFrames > MAX_TRIES) {
                 isRunning = false;
-                document.getElementById('content').innerHTML = jsonResponse.html;
+                document.getElementById('content').innerHTML = responseText;
                 try {
                   navigator.vibrate([400,50,400]);
                 } catch (error) {
@@ -84,16 +89,13 @@ var YooniKFaceAuthenticationSDK = (function(){
                 }
             }
             sendingResult = false;
+        }).catch((err) => {
+            document.getElementById('content').innerHTML = err;
         });
-        data = {
-            session_token: urlParams.get('session_token'),
-            state: urlParams.get('state'),
-            photo: imageData,
-        };
-        request.send( JSON.stringify(data) );
     }
 
     function main() {
+        let haveCameraPermissions = true;
         validFrames = 0;
         sendingResult = false;
         
@@ -106,7 +108,7 @@ var YooniKFaceAuthenticationSDK = (function(){
             height = width;
             width = temp;
         }
-        let output = document.getElementById('output');
+        output = document.getElementById('output');
         output.setAttribute("width", width);
         output.setAttribute("height", height);
         let camera = document.createElement("video");
@@ -116,8 +118,7 @@ var YooniKFaceAuthenticationSDK = (function(){
 
         // Get a permission from user to use a camera.
         if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Sorry, your webcam is unavailable to take a photo");
-            sendResult(null);
+            alert("Sorry, your webcam is unavailable to take a selfie");
             return;
         }
         navigator.mediaDevices.getUserMedia({
@@ -132,12 +133,12 @@ var YooniKFaceAuthenticationSDK = (function(){
         })
         .catch(function(err) {
             alert("Sorry, camera permissions are needed for face authentication.");
-            sendResult(null);
+            haveCameraPermissions = false;
         });
 
         //! [Open a camera stream]
         let cap = new cv.VideoCapture(camera);
-        let frame = new cv.Mat(camera.height, camera.width, cv.CV_8UC4);
+        frame = new cv.Mat(camera.height, camera.width, cv.CV_8UC4);
         let frameBGR = new cv.Mat(camera.height, camera.width, cv.CV_8UC3);
         //! [Open a camera stream]
 
@@ -148,35 +149,21 @@ var YooniKFaceAuthenticationSDK = (function(){
             console.log("Capturing frame")
             const begin = Date.now();
             cap.read(frame); // Read a frame from camera
-            cv.cvtColor(frame, frameBGR, cv.COLOR_RGBA2BGR);
+            cv.imshow(output, frame);
 
+            cv.cvtColor(frame, frameBGR, cv.COLOR_RGBA2BGR);
             let faces = detectFaces(frameBGR);
 
             // Check if we should send a new face to YooniK Authentication API
             if (!sendingResult && isRunning && faces.length == 1) {
                 validFrames++;
                 if (validFrames > 1) { // Discard the first valid frame.
-                    cv.imshow(output, frame);
-                    console.log("Converting to base64 URL");
-                    imageData = output.toDataURL("image/png");
-                    sendResult(imageData);
+                    document.getElementById('submit-selfie-button').click();
                 }
             }
 
-            faces.forEach(function(rect) {
-                cv.rectangle(frame, {
-                    x: rect.x,
-                    y: rect.y
-                }, {
-                    x: rect.x + rect.width,
-                    y: rect.y + rect.height
-                }, [43, 179, 186, 255], 3);
-            });
-
-            cv.imshow(output, frame);
-
             // Loop this function.
-            if (isRunning) {
+            if (isRunning && haveCameraPermissions) {
                 const delay = 1000 / FPS - (Date.now() - begin);
                 setTimeout(captureFrame, delay);
             }
@@ -196,6 +183,8 @@ var YooniKFaceAuthenticationSDK = (function(){
     }
 
     window.addEventListener('load', (event) => {
+        const faceAuthenticationForm = document.getElementById( "face-authentication-form" );
+        faceAuthenticationForm.addEventListener('submit', authenticateWithFace);
         cv['onRuntimeInitialized'] = () => {
             let statusElement = document.getElementById('status');
             statusElement.innerHTML = '<button type="button" class="btn btn-info" id="take-selfie-button">Take selfie</button>';
