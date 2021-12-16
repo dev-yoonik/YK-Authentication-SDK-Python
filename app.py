@@ -3,102 +3,47 @@ import logging
 import requests
 import jwt
 from waitress import serve
-from bs4 import BeautifulSoup
-from flask import Flask, request, render_template, jsonify
-
-# ------------ SET THESE CONFIGURATION VALUES ------------ #
-YOONIK_SESSION_SECRET = 'A random long string that is used to sign the session token from Auth0'
-YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication APIs'
-YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK APIs (please contact support@yoonik.me).'
-# -------------------------------------------------------- #
+from flask import Flask, request, render_template, jsonify, abort
+from helpers import allowed_base64_image, parse_response_error, parse_response_status, config
+from forms import FaceAuthenticationForm
 
 
 APP = Flask(__name__)
+APP.config.update({'SECRET_KEY': config['APP_SECRET']})
 JWT_ALGORITHM = "HS256"
 
 
-def allowed_base64_image(image_str):
-    if not image_str.startswith('data:image/'):
-        return False
-    return image_str[11:14] in {'png', 'jpg', 'jpeg', 'gif'}
-
-
-def parse_response_error(html_text: str) -> str:
-    """Parse HTML error response
-    :param html_text:
-        HTML error message.
-    :return:
-        Parsed error message.
-    """
-    message = ''
-    html = BeautifulSoup(markup=html_text, features="html.parser")
-    if html.p:
-        inner_html = BeautifulSoup(markup=html.p.text, features="html.parser")
-        message = inner_html.text if inner_html.p is None else inner_html.p.text
-
-    if "face_not_found" in message:
-        message = "Could not find a face in the image."
-    elif "multiple_faces" in message:
-        message = "The image has more than one person."
-    elif "quality_failed" in message:
-        message = "The provided image does not have enough quality."
-    else:
-        message = "An error occurred. Please contact your systems administrator."
-        print(f"ERROR: {html.text}")
-    return message
-
-
-def parse_response_status(status: str) -> str:
-    """Create a message from the response status data
-    :param status:
-        Status of the operation.
-    :return:
-        Resulting message to be sent to the UI.
-    """
-    message = status
-    if status == 'SUCCESS':
-        message = "Face authentication successful"
-    elif status == 'NEW_USER':
-        message = "Face signup successful"
-    elif status == 'USER_NOT_FOUND':
-        message = "User not registered"
-    elif status == 'FAILED':
-        message = "Face authentication failed"
-    return message
-
-
-@APP.route("/")
+@APP.route("/", methods=['GET', 'POST'])
 def home():
     """Example endpoint for handling YooniK's Action integration from Auth0
     :return:
     """
-    return render_template("take_photo.html")
+    if request.method == 'GET':
+        return render_template("take_photo.html", form=FaceAuthenticationForm())
 
+    form = FaceAuthenticationForm()
+    if not form.validate_on_submit():
+        abort(400, "Error in selfie submission")
 
-@APP.route("/verify_user", methods=['POST'])
-def verify_user():
-    """Check user photo with YooniK Authentication API.
-    :return:
-    """
     status = 'FAILED'
     message_class = 'text-danger'
     message = 'Face authentication failed'
+    continue_url = ''
 
-    state = request.json['state']
-    session_token = request.json['session_token']
-    session_token_decoded = jwt.decode(session_token, YOONIK_SESSION_SECRET, algorithms=[JWT_ALGORITHM])
+    state = request.args.get("state")
+    session_token = request.args.get('session_token')
+    session_token_decoded = jwt.decode(session_token, config['YOONIK_SESSION_SECRET'], algorithms=[JWT_ALGORITHM])
     user_id = session_token_decoded['sub']
-    if request.json['photo'] and allowed_base64_image(request.json['photo']):
-        photo_str = request.json['photo'].split('base64,')[1]
 
+    if allowed_base64_image(form.user_selfie.data):
         yoonik_request_data = {
             'user_id': user_id,
-            'user_photo': photo_str,
+            'user_photo': form.user_selfie.data.split('base64,')[1],
             'create_if_new': True
         }
         response = requests.post(
-            YOONIK_AUTHENTICATION_API_URL,
-            headers={'x-api-key': YOONIK_AUTHENTICATION_API_KEY},
+            config['YOONIK_AUTHENTICATION_API_URL'],
+            headers={'x-api-key': config['YOONIK_AUTHENTICATION_API_KEY']},
             json=yoonik_request_data
         )
         if response.ok:
@@ -109,13 +54,14 @@ def verify_user():
         else:
             message = f'Ups! {parse_response_error(response.text)}'
 
-    session_token_decoded["status"] = status
-    session_token_decoded["state"] = state
-    new_session_token_encoded = jwt.encode(session_token_decoded,
-                                           YOONIK_SESSION_SECRET, algorithm=JWT_ALGORITHM)
-    continue_url = f"{session_token_decoded['iss']}continue?state={state}&" \
-                   f"yoonik_authentication=true&" \
-                   f"session_token={new_session_token_encoded}"
+    if status == 'SUCCESS' or status == 'NEW_USER':
+        session_token_decoded["status"] = status
+        session_token_decoded["state"] = state
+        new_session_token_encoded = jwt.encode(session_token_decoded,
+                                               config['YOONIK_SESSION_SECRET'], algorithm=JWT_ALGORITHM)
+        continue_url = f"{session_token_decoded['iss']}continue?state={state}&" \
+                       f"yoonik_authentication=true&" \
+                       f"session_token={new_session_token_encoded}"
 
     return jsonify(
         status=status,

@@ -3,3 +3,4 @@ flask
 PyJWT
 beautifulsoup4
 waitress
+flask-wtf

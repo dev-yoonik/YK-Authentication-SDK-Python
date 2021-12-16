@@ -1,8 +1,9 @@
 <h2 class="{{ message_class }}">{{ message }}</h2>
 <p>
     {% if message_class == 'text-danger' %}
-        <a class="text-info" href="javascript:location.reload(true)">Try again</a> or
+        <a class="text-info" href="javascript:location.reload(true)">Try again</a>
+    {% else %}
+        <a class="text-info" href="{{ continue_url }}">Proceed with login 👉</a>
     {% endif %}
-    <a class="text-info" href="{{ continue_url }}">Proceed with login 👉</a>
 </p>
 
