@@ -1,5 +1,5 @@
 """This script deletes a user from YooniK Authentication API"""
-import requests
+from yk_utils.apis import FaceAuthentication
 
 # ------------------- SET THESE VALUES ------------------- #
 YOONIK_AUTHENTICATION_API_URL = 'URL for YooniK Authentication API'
@@ -8,13 +8,13 @@ YOONIK_AUTHENTICATION_API_KEY = 'Your YooniK API key for accessing the YooniK AP
 USER_ID = 'User ID to be deleted'
 # -------------------------------------------------------- #
 
-response = requests.delete(
-    YOONIK_AUTHENTICATION_API_URL,
-    headers={'x-api-key': YOONIK_AUTHENTICATION_API_KEY},
-    json={'user_id': USER_ID}
+face_authentication = FaceAuthentication(
+    api_url=YOONIK_AUTHENTICATION_API_URL,
+    api_key=YOONIK_AUTHENTICATION_API_KEY
 )
 
-if response.ok:
+success = face_authentication.request_account_deletion(user_id=USER_ID)
+if success:
     print(f'User {USER_ID} successfully deleted!')
 else:
-    print(f'Error deleting user {USER_ID}: {response.text}.')
+    print(f'Error deleting user {USER_ID}.')
