@@ -4,4 +4,4 @@ PyJWT
 beautifulsoup4
 waitress
 flask-wtf
-yk-utils==1.3.1
+yk-utils==1.3.2
